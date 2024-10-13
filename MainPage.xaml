@@ -6,10 +6,29 @@
     <ScrollView>
         <VerticalStackLayout Padding="20,20"
                              Spacing="20">
-            <Label Text="1. Select your .epub file:"
+            <Label Text="Select your .epub file:"
                    FontSize="Small"/>
             <Button Text="Browse"
                     HorizontalOptions="Fill" />
+            <Label Text="No file selected" FontSize="Micro" />
+            
+            <Label Text="Find the text you want to start reading from:"
+                   FontSize="Small"/>
+            <Entry Placeholder="Leave empty to start from the beginning"/>
+            <Button Text="Find"
+                    HorizontalOptions="Fill" />
+
+            <Label Text="Select the correct text:"
+                   FontSize="Small"/>
+            <VerticalStackLayout MaximumHeightRequest="100">
+                <Label>First</Label>
+                <Label>Second</Label>
+                <Label>Third</Label>
+            </VerticalStackLayout>
+            
+            <Label Text="Start reading the text:"
+                   FontSize="Small"/>
+            <Button Text="Read"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
