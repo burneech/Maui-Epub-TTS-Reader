@@ -1,34 +1,49 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:MauiEpubTTSReader"
              x:Class="MauiEpubTTSReader.MainPage">
-
+    <ContentPage.BindingContext>
+        <local:MainPageViewModel/>
+    </ContentPage.BindingContext>
+    
     <ScrollView>
         <VerticalStackLayout Padding="20,20"
                              Spacing="20">
+            <!--Selecting EPUB-->
             <Label Text="Select your .epub file:"
                    FontSize="Small"/>
             <Button Text="Browse"
-                    HorizontalOptions="Fill" />
-            <Label Text="No file selected" FontSize="Micro" />
-            
-            <Label Text="Find the text you want to start reading from:"
-                   FontSize="Small"/>
-            <Entry Placeholder="Leave empty to start from the beginning"/>
-            <Button Text="Find"
-                    HorizontalOptions="Fill" />
+                    HorizontalOptions="Fill"
+                    Command="{Binding BrowseEpubFileCommand}"/>
+            <Label Text="{Binding EpubStateDisplayMessage}" FontSize="Micro" />
 
-            <Label Text="Select the correct text:"
-                   FontSize="Small"/>
-            <VerticalStackLayout MaximumHeightRequest="100">
-                <Label>First</Label>
-                <Label>Second</Label>
-                <Label>Third</Label>
+            <!--Finding text-->
+            <VerticalStackLayout IsVisible="{Binding IsTextFindingVisible}">
+                <Label Text="Find the text you want to start reading from:"
+                       FontSize="Small"/>
+                <Entry Placeholder="Leave empty to start from the beginning"
+                       Text="{Binding TextToFind}"/>
+                <Button Text="Find"
+                        HorizontalOptions="Fill"
+                        Command="{Binding FindTextCommand}"/>
             </VerticalStackLayout>
-            
-            <Label Text="Start reading the text:"
-                   FontSize="Small"/>
-            <Button Text="Read"/>
+
+            <!--Selecting correct text if multiple occurrences found-->
+            <VerticalStackLayout IsVisible="{Binding IsMultipleTextSelectionVisible}">
+                <Label Text="Select the correct text:"
+                       FontSize="Small"/>
+                <Picker ItemsSource="{Binding LocationsOfFoundText}"
+                        SelectedItem="{Binding SelectedFoundTextLocation}"/>
+            </VerticalStackLayout>
+
+            <!--Reading text-->
+            <VerticalStackLayout IsVisible="{Binding IsTextReadingVisible}">
+                <Label Text="Start reading the text:"
+                       FontSize="Small"/>
+                <Button Text="Read"
+                        Command="{Binding StartTextToSpeechCommand}"/>
+            </VerticalStackLayout>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
