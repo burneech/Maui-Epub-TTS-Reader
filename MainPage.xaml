@@ -9,17 +9,20 @@
     
     <ScrollView>
         <VerticalStackLayout Padding="20,20"
-                             Spacing="20">
+                             Spacing="50">
             <!--Selecting EPUB-->
-            <Label Text="Select your .epub file:"
-                   FontSize="Small"/>
-            <Button Text="Browse"
-                    HorizontalOptions="Fill"
-                    Command="{Binding BrowseEpubFileCommand}"/>
-            <Label Text="{Binding EpubStateDisplayMessage}" FontSize="Micro" />
+            <VerticalStackLayout Spacing="10">
+                <Label Text="Select your .epub file:"
+                       FontSize="Small"/>
+                <Button Text="Browse"
+                        HorizontalOptions="Fill"
+                        Command="{Binding BrowseEpubFileCommand}"/>
+                <Label Text="{Binding EpubStateDisplayMessage}" FontSize="Micro" />
+            </VerticalStackLayout>
 
-            <!--Finding text-->
-            <VerticalStackLayout IsVisible="{Binding IsTextFindingVisible}">
+            <!--Searching text-->
+            <VerticalStackLayout IsVisible="{Binding IsTextSearchVisible}"
+                                 Spacing="10">
                 <Label Text="Find the text you want to start reading from:"
                        FontSize="Small"/>
                 <Entry Placeholder="Leave empty to start from the beginning"
@@ -30,7 +33,8 @@
             </VerticalStackLayout>
 
             <!--Selecting correct text if multiple occurrences found-->
-            <VerticalStackLayout IsVisible="{Binding IsMultipleTextSelectionVisible}">
+            <VerticalStackLayout IsVisible="{Binding IsMultipleTextSelectionVisible}"
+                                 Spacing="10">
                 <Label Text="Select the correct text:"
                        FontSize="Small"/>
                 <Picker ItemsSource="{Binding LocationsOfFoundText}"
@@ -38,7 +42,8 @@
             </VerticalStackLayout>
 
             <!--Reading text-->
-            <VerticalStackLayout IsVisible="{Binding IsTextReadingVisible}">
+            <VerticalStackLayout IsVisible="{Binding IsTextReadingVisible}"
+                                 Spacing="10">
                 <Label Text="Start reading the text:"
                        FontSize="Small"/>
                 <Button Text="Read"
