@@ -33,12 +33,14 @@
             </VerticalStackLayout>
 
             <!--Selecting correct text if multiple occurrences found-->
-            <VerticalStackLayout IsVisible="{Binding IsMultipleTextSelectionVisible}"
+            <VerticalStackLayout IsVisible="{Binding IsMultipleSubstringSelectionVisible}"
                                  Spacing="10">
                 <Label Text="Select the correct text:"
                        FontSize="Small"/>
-                <Picker ItemsSource="{Binding LocationsOfFoundText}"
-                        SelectedItem="{Binding SelectedFoundTextLocation}"/>
+                <Picker ItemsSource="{Binding LocatedSubstringOccurrences}"
+                        SelectedItem="{Binding SelectedSubstringOccurrence}"
+                        ItemDisplayBinding="{Binding SubstringPreview}"
+                        HorizontalOptions="Fill"/>
             </VerticalStackLayout>
 
             <!--Reading text-->

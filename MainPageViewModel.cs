@@ -13,7 +13,7 @@ namespace MauiEpubTTSReader
         [ObservableProperty]
         private bool _isTextSearchVisible;
         [ObservableProperty]
-        private bool _isMultipleTextSelectionVisible;
+        private bool _isMultipleSubstringSelectionVisible;
         [ObservableProperty]
         private bool _isTextReadingVisible;
 
@@ -23,37 +23,37 @@ namespace MauiEpubTTSReader
         [ObservableProperty]
         private string _textToFind = string.Empty;
 
-        private List<TextLocation> _locationsOfFoundText = [];
-        public List<TextLocation> LocationsOfFoundText
+        private List<SubstringLocation> _locatedSubstringOccurrences = [];
+        public List<SubstringLocation> LocatedSubstringOccurrences
         {
-            get => _locationsOfFoundText;
+            get => _locatedSubstringOccurrences;
             set
             {
-                SetProperty(ref _locationsOfFoundText, value);
+                SetProperty(ref _locatedSubstringOccurrences, value);
                 //if (value.Count > 1)
-                //    //IsMultipleTextSelectionVisible = true;
+                //    //IsMultipleSubstringSelectionVisible = true;
                 //else
                 //{
-                //    //IsMultipleTextSelectionVisible = false;
+                //    //IsMultipleSubstringSelectionVisible = false;
                 //    SelectedFoundTextLocation = value.First();
                 //}
             }
         }
 
         [ObservableProperty]
-        private TextLocation? _selectedFoundTextLocation;
+        private SubstringLocation? _selectedSubstringOccurrence;
 
         private string _completeBookText = string.Empty;
 
         public MainPageViewModel()
         {
             // TODO Hook it up with real found locations of the text the user entered
-            LocationsOfFoundText =
-            [
-                new TextLocation { Index = 10, Text = "This is the first text" },
-                new TextLocation { Index = 50, Text = "This is the second text" },
-                new TextLocation { Index = 150, Text = "This is the third text" },
-            ];
+            //LocatedSubstringOccurrences =
+            //[
+            //    new SubstringLocation { Index = 10, SubstringPreview = "This is the first text" },
+            //    new SubstringLocation { Index = 50, SubstringPreview = "This is the second text" },
+            //    new SubstringLocation { Index = 150, SubstringPreview = "This is the third text" },
+            //];
         }
 
         [RelayCommand]
@@ -104,8 +104,10 @@ namespace MauiEpubTTSReader
                     }
                     _completeBookText = outerSB.ToString();
 
+                    // TODO - Could replace code above with method that returns true/false depending on the resulting string length > 0, to reduce nesting IFs
+
                     IsTextSearchVisible = true;
-                    IsMultipleTextSelectionVisible = false;
+                    IsMultipleSubstringSelectionVisible = false;
                     IsTextReadingVisible = false;
                     // TODO - Reset found text lists, variables, stop the reading etc.
                 }
@@ -113,7 +115,7 @@ namespace MauiEpubTTSReader
                 {
                     EpubStateDisplayMessage = "No file selected.";
                     IsTextSearchVisible = false;
-                    IsMultipleTextSelectionVisible = false;
+                    IsMultipleSubstringSelectionVisible = false;
                     IsTextReadingVisible = false;
                     // TODO - Reset found text lists, variables, stop the reading etc.
                 }
@@ -122,7 +124,7 @@ namespace MauiEpubTTSReader
             {
                 EpubStateDisplayMessage = "Something went wrong :(";
                 IsTextSearchVisible = false;
-                IsMultipleTextSelectionVisible = false;
+                IsMultipleSubstringSelectionVisible = false;
                 IsTextReadingVisible = false;
                 // TODO - Reset found text lists, variables, stop the reading etc.
                 // TODO - Log or set up notifications
@@ -130,16 +132,66 @@ namespace MauiEpubTTSReader
         }
 
         [RelayCommand]
-        private void FindText()
+        private async Task FindText()
         {
             // TODO Find the text the user entered, or set to beginning of the book if the text was empty
-            IsMultipleTextSelectionVisible = true;
+
+            if (string.IsNullOrEmpty(TextToFind))
+            {
+                // Search text was left empty, offer reading from the beginning of the book
+                LocatedSubstringOccurrences.Clear();
+                SelectedSubstringOccurrence = new SubstringLocation { Index = 0, SubstringPreview = string.Empty };
+                IsMultipleSubstringSelectionVisible = false;
+                IsTextReadingVisible = true;
+            }
+            else
+            {
+                // Search text was entered, try to find textOccurrences in the book
+                IsMultipleSubstringSelectionVisible = true;
+                LocatedSubstringOccurrences = await FindTextOccurrancesAsync(TextToFind, _completeBookText, 40);
+            }
         }
 
         [RelayCommand]
         private void StartTextToSpeech()
         {
             // TODO Start text to speech from the found text
+        }
+
+        public async Task<List<SubstringLocation>> FindTextOccurrancesAsync(string textToFind, string textToScan, int extraSubstringPreviewCharacters)
+        {
+            return await Task.Run(() =>
+            {
+                var occurrences = new List<SubstringLocation>();
+
+                if (string.IsNullOrEmpty(textToFind) || string.IsNullOrEmpty(textToScan) || extraSubstringPreviewCharacters < 0)
+                    return occurrences;
+
+                int index = textToScan.IndexOf(textToFind, StringComparison.OrdinalIgnoreCase);
+
+                while (index != -1)
+                {
+                    // Calculate the end index for the substring preview (preview chars after the found text or until the end)
+                    int endIndex = Math.Min(index + textToFind.Length + extraSubstringPreviewCharacters, textToScan.Length);
+
+                    // Extract the substring: found text + preview characters
+                    string foundSubstringText = textToScan.Substring(index, endIndex - index);
+
+                    // TODO - Replace last three substring preview characters with dots if they can be sacrificed or if there is extra text after them
+
+                    // Add the occurrence to the list
+                    occurrences.Add(new SubstringLocation
+                    {
+                        Index = index,
+                        SubstringPreview = foundSubstringText
+                    });
+
+                    // Continue searching after this occurrence
+                    index = textToScan.IndexOf(textToFind, index + 1, StringComparison.OrdinalIgnoreCase);
+                }
+
+                return occurrences;
+            });
         }
     }
 }
