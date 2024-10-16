@@ -57,6 +57,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="CommunityToolkit.Maui" Version="9.1.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
 		<PackageReference Include="HtmlAgilityPack" Version="1.11.67" />
 		<PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />

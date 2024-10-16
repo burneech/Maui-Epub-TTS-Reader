@@ -1,12 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              xmlns:local="clr-namespace:MauiEpubTTSReader"
              x:Class="MauiEpubTTSReader.MainPage">
     <ContentPage.BindingContext>
         <local:MainPageViewModel/>
     </ContentPage.BindingContext>
-    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <toolkit:IsStringNotNullOrEmptyConverter x:Key="IsStringNotNullOrEmptyConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
     <ScrollView>
         <VerticalStackLayout Padding="20,20"
                              Spacing="50">
@@ -17,7 +23,10 @@
                 <Button Text="Browse"
                         HorizontalOptions="Fill"
                         Command="{Binding BrowseEpubFileCommand}"/>
-                <Label Text="{Binding EpubStateDisplayMessage}" FontSize="Micro" />
+                <Label Text="{Binding EpubStateDisplayMessage}"
+                       IsVisible="{Binding EpubStateDisplayMessage,
+                                           Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
+                       FontSize="Micro" />
             </VerticalStackLayout>
 
             <!--Searching text-->
@@ -30,6 +39,10 @@
                 <Button Text="Find"
                         HorizontalOptions="Fill"
                         Command="{Binding FindTextCommand}"/>
+                <Label Text="{Binding SearchStateDisplayMessage}"
+                       IsVisible="{Binding SearchStateDisplayMessage,
+                                           Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
+                       FontSize="Micro" />
             </VerticalStackLayout>
 
             <!--Selecting correct text if multiple occurrences found-->
