@@ -35,7 +35,8 @@
                 <Label Text="Find the text you want to start listening from:"
                        FontSize="Small"/>
                 <Entry Placeholder="Leave empty to start from the beginning"
-                       Text="{Binding TextToFind}"/>
+                       Text="{Binding TextToFind}"
+                       Completed="SearchTextEntry_Completed"/>
                 <Button Text="Find"
                         HorizontalOptions="Fill"
                         Command="{Binding FindTextCommand}"/>

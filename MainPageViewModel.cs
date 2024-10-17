@@ -62,7 +62,6 @@ namespace MauiEpubTTSReader
         [RelayCommand]
         private async Task FindText()
         {
-            // TODO Imitate button press on pressing the Enter key from inside the Entry control
             if (string.IsNullOrEmpty(TextToFind))
             {
                 // Search text was left empty, listening will start from the beginning of the book
