@@ -8,6 +8,7 @@
         FindTextEmpty,
         FindTextSingleOccurranceFound,
         FindTextMultipleOccurrancesFound,
+        FindTextMultipleOccurrancesSearchLimitHit,
         FindTextNotFound
     }
 }

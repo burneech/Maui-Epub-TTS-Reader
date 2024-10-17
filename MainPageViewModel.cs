@@ -8,17 +8,11 @@ namespace MauiEpubTTSReader
 {
     public partial class MainPageViewModel : ObservableObject
     {
-        [ObservableProperty]
-        private bool _isTextSearchVisible;
-        [ObservableProperty]
-        private bool _isMultipleSubstringSelectionVisible;
-        [ObservableProperty]
-        private bool _isTextReadingVisible;
+        const short _matchingTextOccurrancesSearchLimit = 100;
+        const short _extraSubstringPreviewCharacters = 40;
 
         [ObservableProperty]
         private string _epubStateDisplayMessage = string.Empty;
-
-        private string _epubFileName = string.Empty;
 
         [ObservableProperty]
         private string _searchStateDisplayMessage = string.Empty;
@@ -32,6 +26,14 @@ namespace MauiEpubTTSReader
         [ObservableProperty]
         private SubstringLocation? _selectedSubstringOccurrence;
 
+        [ObservableProperty]
+        private bool _isTextSearchVisible;
+        [ObservableProperty]
+        private bool _isMultipleSubstringSelectionVisible;
+        [ObservableProperty]
+        private bool _isTextListeningVisible;
+
+        private string _epubFileName = string.Empty;
         private string _completeBookText = string.Empty;
 
         [RelayCommand]
@@ -60,17 +62,21 @@ namespace MauiEpubTTSReader
         [RelayCommand]
         private async Task FindText()
         {
+            // TODO Imitate button press on pressing the Enter key from inside the Entry control
             if (string.IsNullOrEmpty(TextToFind))
             {
-                // Search text was left empty, reading will start from the beginning of the book
+                // Search text was left empty, listening will start from the beginning of the book
                 LocatedSubstringOccurrences.Clear();
                 SelectedSubstringOccurrence = new SubstringLocation { Index = 0, SubstringPreview = string.Empty };
                 CurrentUIState = UIStateEnum.FindTextEmpty;
             }
             else
             {
+                bool _wasTextOccurrancesLimitHit;
+
                 // Search text was entered, try to find textOccurrences in the book
-                LocatedSubstringOccurrences = await TextScanner.FindTextOccurrancesAsync(TextToFind, _completeBookText, 40);
+                (LocatedSubstringOccurrences, _wasTextOccurrancesLimitHit) = 
+                    await TextScanner.FindTextOccurrancesAsync(TextToFind, _completeBookText, _extraSubstringPreviewCharacters, _matchingTextOccurrancesSearchLimit);
                 if (LocatedSubstringOccurrences.Count == 1)
                 {
                     SelectedSubstringOccurrence = LocatedSubstringOccurrences[0];
@@ -78,10 +84,10 @@ namespace MauiEpubTTSReader
                 }
                 else if (LocatedSubstringOccurrences.Count > 1)
                 {
-                    // TODO - Limit searching to first 100 occurrences, ask user to write a more unique text query (the return list could be too large for common words)
-                    // TODO - Limit TextToFind length that can be entered in the UI
                     SelectedSubstringOccurrence = LocatedSubstringOccurrences[0];
-                    CurrentUIState = UIStateEnum.FindTextMultipleOccurrancesFound;
+                    CurrentUIState = _wasTextOccurrancesLimitHit
+                        ? UIStateEnum.FindTextMultipleOccurrancesSearchLimitHit
+                        : UIStateEnum.FindTextMultipleOccurrancesFound;
                 }
                 else
                 {
@@ -100,41 +106,47 @@ namespace MauiEpubTTSReader
 
         #region UI state handling
         [ObservableProperty]
-        private UIStateEnum _currentUIState;
-        partial void OnCurrentUIStateChanged(UIStateEnum value) => UpdateUIState(value);
-        private void UpdateUIState(UIStateEnum appState)
+        private UIStateEnum? _currentUIState = null;
+        partial void OnCurrentUIStateChanged(UIStateEnum? value) => UpdateUIState(value);
+        private void UpdateUIState(UIStateEnum? appState)
         {
             switch (appState)
             {
                 case UIStateEnum.EpubLoadedOk:
                     EpubStateDisplayMessage = !string.IsNullOrEmpty(_epubFileName) ? $"Selected file: {_epubFileName}" : "Selected file.";
                     IsTextSearchVisible = true;
-                    IsMultipleSubstringSelectionVisible = IsTextReadingVisible = false;
+                    IsMultipleSubstringSelectionVisible = IsTextListeningVisible = false;
                     break;
                 case UIStateEnum.EpubLoadedTextEmpty:
                     EpubStateDisplayMessage = !string.IsNullOrEmpty(_epubFileName) ? $"Epub text returned empty: {_epubFileName}" : "Epub text returned empty.";
-                    IsTextSearchVisible = IsMultipleSubstringSelectionVisible = IsTextReadingVisible = false;
+                    IsTextSearchVisible = IsMultipleSubstringSelectionVisible = IsTextListeningVisible = false;
                     break;
                 case UIStateEnum.EpubLoadError:
                     EpubStateDisplayMessage = "Loading the Epub file has failed or was cancelled.";
-                    IsTextSearchVisible = IsMultipleSubstringSelectionVisible = IsTextReadingVisible = false;
+                    IsTextSearchVisible = IsMultipleSubstringSelectionVisible = IsTextListeningVisible = false;
                     break;
                 case UIStateEnum.FindTextEmpty:
-                    SearchStateDisplayMessage = "Reading will start from the beginning.";
+                    SearchStateDisplayMessage = "Listening will start from the beginning.";
                     IsMultipleSubstringSelectionVisible = false;
-                    IsTextReadingVisible = true;
+                    IsTextListeningVisible = true;
                     break;
                 case UIStateEnum.FindTextSingleOccurranceFound:
-                    SearchStateDisplayMessage = "Matching text found. You can now start listening.";
+                    SearchStateDisplayMessage = "Matching text found. You can start listening now.";
                     IsMultipleSubstringSelectionVisible = false;
+                    IsTextListeningVisible = true;
                     break;
                 case UIStateEnum.FindTextMultipleOccurrancesFound:
-                    SearchStateDisplayMessage = "Multiple matching text occurrances found. Select one and start listening.";
-                    IsMultipleSubstringSelectionVisible = IsTextReadingVisible = true;
+                    SearchStateDisplayMessage = "Multiple matching text occurrances found, pick one and start listening.";
+                    IsMultipleSubstringSelectionVisible = IsTextListeningVisible = true;
+                    break;
+                case UIStateEnum.FindTextMultipleOccurrancesSearchLimitHit:
+                    SearchStateDisplayMessage = $"Maximum matching text occurrances found ({_matchingTextOccurrancesSearchLimit}).\n" +
+                        $"Please refine your query or select one of the available occurrances and start listening.";
+                    IsMultipleSubstringSelectionVisible = IsTextListeningVisible = true;
                     break;
                 case UIStateEnum.FindTextNotFound:
                     SearchStateDisplayMessage = "No matching text found.";
-                    IsMultipleSubstringSelectionVisible = IsTextReadingVisible = false;
+                    IsMultipleSubstringSelectionVisible = IsTextListeningVisible = false;
                     break;
                 default:
                     break;

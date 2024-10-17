@@ -32,7 +32,7 @@
             <!--Searching text-->
             <VerticalStackLayout IsVisible="{Binding IsTextSearchVisible}"
                                  Spacing="10">
-                <Label Text="Find the text you want to start reading from:"
+                <Label Text="Find the text you want to start listening from:"
                        FontSize="Small"/>
                 <Entry Placeholder="Leave empty to start from the beginning"
                        Text="{Binding TextToFind}"/>
@@ -43,25 +43,22 @@
                        IsVisible="{Binding SearchStateDisplayMessage,
                                            Converter={StaticResource IsStringNotNullOrEmptyConverter}}"
                        FontSize="Micro" />
-            </VerticalStackLayout>
-
-            <!--Selecting correct text if multiple occurrences found-->
-            <VerticalStackLayout IsVisible="{Binding IsMultipleSubstringSelectionVisible}"
-                                 Spacing="10">
-                <Label Text="Select the correct text:"
-                       FontSize="Small"/>
-                <Picker ItemsSource="{Binding LocatedSubstringOccurrences}"
+                
+                <!--Selecting the correct text if multiple text occurrences are found-->
+                <Picker IsVisible="{Binding IsMultipleSubstringSelectionVisible}"
+                        ItemsSource="{Binding LocatedSubstringOccurrences}"
                         SelectedItem="{Binding SelectedSubstringOccurrence}"
                         ItemDisplayBinding="{Binding SubstringPreview}"
-                        HorizontalOptions="Fill"/>
+                        HorizontalOptions="Fill"
+                        Margin="0,10,0,0"/>
             </VerticalStackLayout>
 
-            <!--Reading text-->
-            <VerticalStackLayout IsVisible="{Binding IsTextReadingVisible}"
+            <!--Listening to the text-->
+            <VerticalStackLayout IsVisible="{Binding IsTextListeningVisible}"
                                  Spacing="10">
-                <Label Text="Start reading the text:"
+                <Label Text="Start listening:"
                        FontSize="Small"/>
-                <Button Text="Read"
+                <Button Text="Listen"
                         Command="{Binding StartTextToSpeechCommand}"/>
             </VerticalStackLayout>
         </VerticalStackLayout>

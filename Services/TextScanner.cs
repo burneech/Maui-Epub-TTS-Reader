@@ -4,14 +4,14 @@ namespace MauiEpubTTSReader.Services
 {
     public class TextScanner
     {
-        public static async Task<List<SubstringLocation>> FindTextOccurrancesAsync(string textToFind, string textToScan, int extraSubstringPreviewCharacters)
+        public static async Task<(List<SubstringLocation> results, bool wasLimitHit)> FindTextOccurrancesAsync(string textToFind, string textToScan, short extraSubstringPreviewCharacters, short occurrancesLimit)
         {
             return await Task.Run(() =>
             {
-                var occurrences = new List<SubstringLocation>();
+                var occurrences = new List<SubstringLocation>(occurrancesLimit);
 
                 if (string.IsNullOrEmpty(textToFind) || string.IsNullOrEmpty(textToScan) || extraSubstringPreviewCharacters < 0)
-                    return occurrences;
+                    return (occurrences, false);
 
                 int index = textToScan.IndexOf(textToFind, StringComparison.OrdinalIgnoreCase);
 
@@ -29,14 +29,17 @@ namespace MauiEpubTTSReader.Services
                     occurrences.Add(new SubstringLocation
                     {
                         Index = index,
-                        SubstringPreview = foundSubstringText
+                        SubstringPreview = foundSubstringText.Replace(Environment.NewLine, " ")
                     });
+
+                    if (occurrences.Count == occurrancesLimit)
+                        return (occurrences, true);
 
                     // Continue searching after this occurrence
                     index = textToScan.IndexOf(textToFind, index + 1, StringComparison.OrdinalIgnoreCase);
                 }
 
-                return occurrences;
+                return (occurrences, false);
             });
         }
     }
