@@ -26,7 +26,7 @@ namespace MauiEpubTTSReader.Services
             // Open the file picker
             var loadedFile = await FilePicker.Default.PickAsync(options);
 
-            return loadedFile != null ? loadedFile : null;
+            return loadedFile ?? null;
         }
 
         public static async Task<string> ReadEpubFile(FileResult epubFileToRead)

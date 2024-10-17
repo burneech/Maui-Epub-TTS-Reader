@@ -21,7 +21,7 @@ namespace MauiEpubTTSReader.Services
                     int endIndex = Math.Min(index + textToFind.Length + extraSubstringPreviewCharacters, textToScan.Length);
 
                     // Extract the substring: found text + preview characters
-                    string foundSubstringText = textToScan.Substring(index, endIndex - index);
+                    string foundSubstringText = textToScan[index..endIndex].Replace(Environment.NewLine, " ");
 
                     // TODO - Replace last three substring preview characters with dots if they can be sacrificed or if there is extra text after them
 
@@ -29,7 +29,7 @@ namespace MauiEpubTTSReader.Services
                     occurrences.Add(new SubstringLocation
                     {
                         Index = index,
-                        SubstringPreview = foundSubstringText.Replace(Environment.NewLine, " ")
+                        SubstringPreview = foundSubstringText
                     });
 
                     if (occurrences.Count == occurrancesLimit)
