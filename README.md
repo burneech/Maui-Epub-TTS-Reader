@@ -17,3 +17,4 @@ You can use it to quickly switch from **reading** on your e-book reader (or some
 ### Application info
 - .NET Core 8.0, MAUI
 - Uses [vers.one/EpubReader](https://github.com/vers-one/EpubReader) library for handling Epub files.
+- Application icon from [SVG Repo](https://www.svgrepo.com/svg/285882/megaphone-advertising).
