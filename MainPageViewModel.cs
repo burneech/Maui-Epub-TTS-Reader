@@ -35,6 +35,26 @@ namespace MauiEpubTTSReader
 
         private string _epubFileName = string.Empty;
         private string _completeBookText = string.Empty;
+        private bool _isTextToSpeechRunning;
+        public string ListenButtonText => IsTextToSpeechRunning ? "Stop listening" : "Listen";
+        private CancellationTokenSource _cts;
+
+        public bool IsTextToSpeechRunning
+        {
+            get => _isTextToSpeechRunning;
+            private set
+            {
+                _isTextToSpeechRunning = value;
+                OnPropertyChanged(nameof(IsTextToSpeechRunning));
+                OnPropertyChanged(nameof(ListenButtonText));
+            }
+        }
+        public IRelayCommand ToggleTextToSpeechCommand { get; }
+
+        public MainPageViewModel()
+        {
+            ToggleTextToSpeechCommand = new RelayCommand(async () => await ToggleTextToSpeech());
+        }
 
         [RelayCommand]
         private async Task BrowseEpubFile()
@@ -66,7 +86,7 @@ namespace MauiEpubTTSReader
             {
                 // Search text was left empty, listening will start from the beginning of the book
                 LocatedSubstringOccurrences.Clear();
-                SelectedSubstringOccurrence = new SubstringLocation { Index = 0, SubstringPreview = string.Empty };
+                SelectedSubstringOccurrence = null;
                 CurrentUIState = UIStateEnum.FindTextEmpty;
             }
             else
@@ -97,10 +117,49 @@ namespace MauiEpubTTSReader
             }
         }
 
-        [RelayCommand]
-        private void StartTextToSpeech()
+        private async Task ToggleTextToSpeech()
         {
-            // TODO Start text to speech from the found text
+            if (IsTextToSpeechRunning)
+            {
+                _cts.Cancel();
+                IsTextToSpeechRunning = false;
+            }
+            else
+            {
+                _cts = new CancellationTokenSource();
+                IsTextToSpeechRunning = true;
+                await StartTextToSpeech(_cts.Token);
+                IsTextToSpeechRunning = false;
+            }
+        }
+
+        // TODO - Enable pausing sentences, skipping sentences in both directions, or fast forward / changing speed if the TTS supports it
+        // TODO - List all the sentences in a Picker element and start listening from any one selected
+        // TODO - Display the sentence currently being read
+        // TODO - Extract all this TTS logic into its own service
+        private async Task StartTextToSpeech(CancellationToken cancellationToken)
+        {
+            SelectedSubstringOccurrence ??= new SubstringLocation { Index = 0, SubstringPreview = "" };
+
+            if (!string.IsNullOrEmpty(_completeBookText))
+            {
+                string textToRead = _completeBookText[SelectedSubstringOccurrence.Index..];
+
+                // Split the text by sentence-ending punctuation (period, exclamation mark, question mark)
+                string[] sentences = textToRead.Split(new[] { '.', '!', '?' }, StringSplitOptions.RemoveEmptyEntries);
+                foreach (string sentence in sentences)
+                {
+                    // Check if cancellation is requested
+                    if (cancellationToken.IsCancellationRequested)
+                        break;
+
+                    // Re-add the punctuation at the end of each sentence
+                    string sentenceToSpeak = sentence.Trim() + ".";
+
+                    // Call SpeakAsync to read each sentence
+                    await TextToSpeech.Default.SpeakAsync(sentenceToSpeak, cancelToken: cancellationToken);
+                }
+            }
         }
 
         #region UI state handling
